@@ -14,11 +14,11 @@ from ffprobe import FFProbe
 os.add_dll_directory(r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin")
 
 # Get the absolute path to the project root (D:\VScode\Code\simpleNeRF)
-# Assuming app.py is in video2mesh/backend/
+# Assuming app.py is in Video2NeRF/backend/
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-VENV_PYTHON_PATH = os.path.join(PROJECT_ROOT, 'video2mesh', 'venv', 'Scripts', 'python.exe')
+VENV_PYTHON_PATH = os.path.join(PROJECT_ROOT, 'Video2NeRF', 'venv', 'Scripts', 'python.exe')
 
-app = Flask(__name__, static_folder=os.path.join(PROJECT_ROOT, 'video2mesh'))
+app = Flask(__name__, static_folder=os.path.join(PROJECT_ROOT, 'Video2NeRF'))
 CORS(app) # Enable CORS for all routes
 
 UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'uploads')
@@ -26,7 +26,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # Base directory for storing NeRF datasets (frames, transforms.json, snapshots, videos)
-dataset_base_dir = os.path.join(PROJECT_ROOT, 'video2mesh', 'dataset', 'my_video') # Updated path
+dataset_base_dir = os.path.join(PROJECT_ROOT, 'Video2NeRF', 'dataset', 'my_video') # Updated path
 if not os.path.exists(dataset_base_dir):
     os.makedirs(dataset_base_dir)
 
@@ -36,7 +36,7 @@ PROCESSING_STATUS = {}
 output_queue = queue.Queue()
 
 def run_script_in_background(video_path, output_dir, fps, task_id, original_filename):
-    script_path = os.path.join(PROJECT_ROOT, 'video2mesh', 'video2nerf.py') # Updated path
+    script_path = os.path.join(PROJECT_ROOT, 'Video2NeRF', 'video2nerf.py') # Updated path
     command = [
         'python', script_path,
         '--video_path', video_path,
