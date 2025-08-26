@@ -1,10 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Video2Mesh</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeRF Video Uploader</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, GitHub Pages is Active!</h1>
-  <p>This placeholder page means GitHub Pages is working.</p>
+    <div class="container">
+        <h1>Upload Video for NeRF Model Generation</h1>
+
+        <div class="upload-section">
+            <input type="file" id="videoUpload" accept="video/*">
+            <label for="videoUpload" class="upload-button">Choose Video</label>
+            <span id="fileName">No file chosen</span>
+        </div>
+
+        <div class="quality-selection">
+            <label for="quality">Select Quality:</label>
+            <select id="quality">
+                <option value="low">Low (Faster)</option>
+                <option value="normal" selected>Normal</option>
+                <option value="high">High (Slower)</option>
+            </select>
+        </div>
+
+        <button id="processVideo">Process Video</button>
+
+        <div class="estimation">
+            <h2>Estimated Wait Time: <span id="estimatedTime">N/A</span></h2>
+        </div>
+
+        <div class="progress-section">
+            <h2>Processing Progress:</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <span id="progressText">0% Complete</span>
+        </div>
+
+        <div class="model-display">
+            <h2>3D Model Display:</h2>
+            <p> (This section will display the 3D model video once generated) </p>
+            <!-- Placeholder for 3D model display -->
+        </div>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
