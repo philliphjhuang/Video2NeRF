@@ -23,8 +23,8 @@ To set up and run the Video2NeRF project, follow these steps:
 ### Setup
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/philliphjhuang/video2mesh.git # Replace with actual repo URL
-   cd video2mesh
+   git clone https://github.com/philliphjhuang/Video2NeRF.git # Replace with actual repo URL
+   cd Video2NeRF
    ```
 
 2. **Backend Setup**:
