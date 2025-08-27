@@ -1,7 +1,7 @@
 # Video2NeRF: Video to Neural Radiance Field Conversion
 
 ## Demo
-[![Watch the demo](demo/Video2NeRF_demp_thumbnail.png)](demo/Video2NeRF_demo.mp4)
+[![Watch the demo](demo/Video2NeRF_demp_thumbnail.png)](https://youtu.be/rpBvnFEMDr0)
 
 ## Description
 This project, `Video2NeRF`, is a web-based application that leverages the power of NVIDIA's `instant-ngp` (Instant Neural Graphics Primitives) to convert video footage into a 3D NeRF (Neural Radiance Field) model. It automates the process of extracting frames from a video, running COLMAP for structure-from-motion to estimate camera poses, and then preparing the data for `instant-ngp` to generate a reconstructable 3D scene. The `video2mesh` component of the project is specifically designed to handle video input and produce a mesh-like representation that can be viewed interactively.
