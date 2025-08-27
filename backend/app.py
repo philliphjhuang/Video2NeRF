@@ -38,7 +38,7 @@ output_queue = queue.Queue()
 def run_script_in_background(video_path, output_dir, fps, task_id, original_filename):
     script_path = os.path.join(PROJECT_ROOT, 'Video2NeRF', 'video2nerf.py') # Updated path
     command = [
-        'python', script_path,
+        VENV_PYTHON_PATH, script_path,
         '--video_path', video_path,
         '--output_dir', output_dir,
         '--fps', str(fps)
@@ -289,54 +289,6 @@ def upload_video():
         filename = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filename)
         return jsonify({'message': 'Video uploaded successfully', 'filename': filename}), 200
-
-@app.route('/estimate_time', methods=['POST'])
-def estimate_time():
-    data = request.get_json()
-    filename = data.get('filename') # Now receive filename to get duration
-    quality = data.get('quality')
-
-    if not filename or not quality:
-        return jsonify({'error': 'Missing filename or quality'}), 400
-    
-    video_path = os.path.join(UPLOAD_FOLDER, os.path.basename(filename))
-    if not os.path.exists(video_path):
-        return jsonify({'error': 'Video file not found at expected path'}), 404
-
-    try:
-        print(f"Attempting to probe video at path: {video_path}") # Added logging
-        metadata = FFProbe(video_path)
-        if not metadata.streams:
-            raise ValueError("No streams found in video metadata.")
-        if not hasattr(metadata.streams[0], 'duration'):
-            raise ValueError("Video stream has no duration information.")
-        video_duration_seconds = metadata.streams[0].duration
-        if video_duration_seconds is None or not str(video_duration_seconds).replace('.', '').isdigit():
-            raise ValueError(f"Could not extract a valid numerical duration from video metadata. Got: {video_duration_seconds}")
-        video_duration_seconds = float(video_duration_seconds)
-        print(f"Video duration detected: {video_duration_seconds} seconds") # Added logging
-    except Exception as e:
-        print(f"Error getting video duration for {video_path}: {e}") # Enhanced logging
-        import traceback
-        traceback.print_exc() # Print full traceback
-        return jsonify({'error': f'Could not get video duration: {str(e)}'}), 500
-
-    # Realistic estimation logic (tuned based on experience, these are example values)
-    # These values would need to be empirically determined for your specific setup
-    time_per_second_low = 10 # seconds of processing per second of video for low quality
-    time_per_second_normal = 20 # seconds of processing per second of video for normal quality
-    time_per_second_high = 40 # seconds of processing per second of video for high quality
-
-    processing_multiplier = {
-        'low': time_per_second_low,
-        'normal': time_per_second_normal,
-        'high': time_per_second_high,
-    }.get(quality, time_per_second_normal)
-
-    estimated_seconds = video_duration_seconds * processing_multiplier
-    estimated_minutes = max(1, round(estimated_seconds / 60))
-    
-    return jsonify({'estimated_minutes': estimated_minutes})
 
 @app.route('/process_video', methods=['POST'])
 def process_video():

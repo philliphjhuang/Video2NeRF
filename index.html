@@ -27,22 +27,15 @@
 
         <button id="processVideo">Process Video</button>
 
-        <div class="estimation">
-            <h2>Estimated Wait Time: <span id="estimatedTime">N/A</span></h2>
-        </div>
-
         <div class="progress-section">
-            <h2>Processing Progress:</h2>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progressBar"></div>
+                <span id="progressText">0% Complete</span>
             </div>
-            <span id="progressText">0% Complete</span>
         </div>
 
         <div class="model-display">
-            <h2>3D Model Display:</h2>
-            <p> (This section will display the 3D model video once generated) </p>
-            <!-- Placeholder for 3D model display -->
+            <p id="modelDisplayPlaceholder">Your rendered NeRF video will appear here.</p>
         </div>
     </div>
 
