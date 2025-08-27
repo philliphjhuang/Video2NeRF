@@ -37,10 +37,11 @@ To set up and run the Video2NeRF project, follow these steps:
    The frontend is a simple HTML/CSS/JavaScript application. No specific installation steps are required beyond having the files in the correct location.
 
 4. **Configure Paths**:
-   Open `video2mesh/video2nerf.py` and update the following paths to match your system:
+   Open `.env` and update the following paths to match your system:
    ```python
-   COLMAP_PATH = r"D:\COLMAP\bin\colmap.exe"  # Your COLMAP path
-   INSTANT_NGP_SCRIPTS = r"instant-ngp\scripts" # Your instant-ngp scripts path
+   COLMAP_PATH=r"C:\\Tools\\colmap\\bin\\colmap.exe"
+   INSTANT_NGP_SCRIPTS=r"C:\\Downloads\\instant-ngp\\scripts"
+   CUDA_BIN_PATH=r"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.8\\bin"
    ```
    
    If you change the `PROJECT_ROOT` or `VENV_PYTHON_PATH` in `video2mesh/backend/app.py` you should update them as well.

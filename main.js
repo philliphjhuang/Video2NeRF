@@ -8,8 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modelDisplayDiv = document.querySelector('.model-display');
     const modelDisplayPlaceholder = document.getElementById('modelDisplayPlaceholder');
 
+    // New export elements
+    const exportSection = document.querySelector('.export-section');
+    const exportIngpButton = document.getElementById('exportIngp');
+    const exportObjButton = document.getElementById('exportObj');
+    const exportPlyButton = document.getElementById('exportPly');
+
     let selectedFile = null;
     let uploadedFilename = null; // Store the filename returned by the backend
+    let currentTaskId = null; // Store the current task ID for exports
 
     videoUpload.addEventListener('change', async (event) => {
         selectedFile = event.target.files[0];
@@ -82,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Processing started:', processResult.message, 'Task ID:', processResult.task_id);
                 // Start polling for progress updates
                 startProgressPolling(processResult.task_id);
+                currentTaskId = processResult.task_id; // Store taskId for export
 
             } catch (error) {
                 console.error('Error starting video processing:', error);
@@ -142,6 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ensure progress bar shows 100% on successful completion
                 progressBar.style.width = '100%';
                 progressText.textContent = '100% Complete';
+
+                // Show export options
+                exportSection.style.display = 'block';
             } else if (data.status === 'failed') {
                 eventSource.close();
                 alert(`Video processing failed: ${data.line}`);
@@ -154,5 +165,47 @@ document.addEventListener('DOMContentLoaded', () => {
             eventSource.close();
             progressText.textContent = 'Error during processing.';
         };
+    }
+
+    // Handle export button clicks
+    exportIngpButton.addEventListener('click', () => downloadFile('ingp'));
+    exportObjButton.addEventListener('click', () => downloadFile('obj'));
+    exportPlyButton.addEventListener('click', () => downloadFile('ply'));
+
+    async function downloadFile(format) {
+        if (!currentTaskId) {
+            alert('No NeRF model has been processed yet.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/export_model/${currentTaskId}/${format}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `model.${format}`;
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(`Error downloading ${format} file:`, error);
+            alert(`Failed to download ${format} file.`);
+        }
     }
 });

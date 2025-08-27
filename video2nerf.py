@@ -3,10 +3,14 @@ import subprocess
 import sys
 import argparse # Import argparse
 import json # Import json for post-processing
+from dotenv import load_dotenv # Import load_dotenv
 
 # ===========================
 # USER SETTINGS
 # ===========================
+# Load environment variables from .env file
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Run video2nerf process.")
 parser.add_argument('--video_path', type=str, required=True, help='Path to the input video file.')
@@ -18,8 +22,8 @@ VIDEO_PATH = args.video_path
 OUTPUT_DIR = args.output_dir
 FPS = args.fps
 
-COLMAP_PATH = r"D:\COLMAP\bin\colmap.exe"  # <-- your COLMAP path
-INSTANT_NGP_SCRIPTS = r"D:\VScode\Code\simpleNeRF\instant-ngp\scripts"
+COLMAP_PATH = os.getenv("COLMAP_PATH")  # <-- your COLMAP path
+INSTANT_NGP_SCRIPTS = os.getenv("INSTANT_NGP_SCRIPTS")
 
 # ===========================
 # HELPER FUNCTIONS

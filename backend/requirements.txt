@@ -1,13 +1,12 @@
 Flask
 Flask-Cors
-numpy
+python-dotenv
 ffprobe-python
 commentjson
 imageio
+numpy
 opencv-python-headless
 pybind11
 pyquaternion
 scipy
 tqdm
-
-

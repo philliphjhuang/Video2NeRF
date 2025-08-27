@@ -10,13 +10,17 @@ import json
 import numpy as np
 import math
 from ffprobe import FFProbe
+from dotenv import load_dotenv
 
-os.add_dll_directory(r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin")
+# Load environment variables from .env file
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+os.add_dll_directory(os.getenv("CUDA_BIN_PATH"))
 
 # Get the absolute path to the project root (D:\VScode\Code\simpleNeRF)
 # Assuming app.py is in Video2NeRF/backend/
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-VENV_PYTHON_PATH = os.path.join(PROJECT_ROOT, 'Video2NeRF', 'venv', 'Scripts', 'python.exe')
+VENV_PYTHON_PATH = os.path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe')
 
 app = Flask(__name__, static_folder=os.path.join(PROJECT_ROOT, 'Video2NeRF'))
 CORS(app) # Enable CORS for all routes
@@ -111,7 +115,7 @@ def train_nerf_model(output_dir, task_id):
 
     # Prepare environment for subprocess, explicitly including CUDA bin to PATH
     env = os.environ.copy()
-    cuda_bin_path = r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin"
+    cuda_bin_path = os.getenv("CUDA_BIN_PATH")
     if "PATH" in env:
         env["PATH"] = f"{cuda_bin_path};{env["PATH"]}"
     else:
@@ -336,6 +340,61 @@ def get_progress(task_id):
                     break
             time.sleep(1) # Poll every second
     return Response(generate_progress(), mimetype='text/event-stream')
+
+@app.route('/export_model/<task_id>/<format>')
+def export_model(task_id, format):
+    if task_id not in PROCESSING_STATUS:
+        return jsonify({'error': 'Task not found.'}), 404
+
+    task_info = PROCESSING_STATUS[task_id]
+    output_dir = os.path.dirname(task_info['snapshot_path'])
+    original_filename_stem = os.path.splitext(task_info['video_original_name'])[0]
+
+    if format == 'ingp':
+        ingp_path = task_info.get('snapshot_path')
+        if not ingp_path or not os.path.exists(ingp_path):
+            return jsonify({'error': 'INGP snapshot not found.'}), 404
+        return send_from_directory(os.path.dirname(ingp_path), os.path.basename(ingp_path), as_attachment=True, download_name=f"{original_filename_stem}.ingp")
+    elif format in ['obj', 'ply']:
+        snapshot_path = task_info.get('snapshot_path')
+        if not snapshot_path or not os.path.exists(snapshot_path):
+            return jsonify({'error': 'NeRF snapshot not found for mesh export.'}), 404
+
+        temp_mesh_filename = f"{original_filename_stem}.{format}"
+        temp_mesh_path = os.path.join(output_dir, temp_mesh_filename)
+
+        run_script_path = os.path.join(PROJECT_ROOT, 'instant-ngp', 'scripts', 'run.py')
+        
+        # Prepare environment for subprocess, explicitly including CUDA bin to PATH
+        env = os.environ.copy()
+        cuda_bin_path = os.getenv("CUDA_BIN_PATH")
+        if "PATH" in env:
+            env["PATH"] = f"{cuda_bin_path};{env["PATH"]}"
+        else:
+            env["PATH"] = cuda_bin_path
+
+        mesh_command = [
+            VENV_PYTHON_PATH, run_script_path,
+            '--load_snapshot', snapshot_path,
+            '--save_mesh', temp_mesh_path,
+            '--marching_cubes_res', '512', # Higher resolution for better mesh quality
+            '--marching_cubes_density_thresh', '2.5' # Default density threshold
+        ]
+
+        try:
+            subprocess.run(mesh_command, check=True, capture_output=True, text=True, env=env)
+            print(f"[Mesh Export] Successfully generated {format} mesh: {temp_mesh_path}")
+            return send_from_directory(output_dir, temp_mesh_filename, as_attachment=True, download_name=temp_mesh_filename)
+        except subprocess.CalledProcessError as e:
+            print(f"[Mesh Export] Error generating {format} mesh: {e.stderr}")
+            return jsonify({'error': f'Failed to generate {format} mesh: {e.stderr}'}), 500
+        finally:
+            # Clean up the temporary mesh file
+            if os.path.exists(temp_mesh_path):
+                os.remove(temp_mesh_path)
+                print(f"[Mesh Export] Cleaned up temporary mesh file: {temp_mesh_path}")
+    else:
+        return jsonify({'error': 'Unsupported export format.'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
