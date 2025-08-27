@@ -85,7 +85,7 @@ def train_nerf_model(output_dir, task_id):
 
     train_command = [
         VENV_PYTHON_PATH, run_script_path,
-        output_dir, # This is the scene path containing transforms.json and images
+        '--scene', os.path.join(output_dir, "frames"), # Explicitly pass output_dir/frames as --scene
         '--n_steps', str(train_steps),
         '--save_snapshot', snapshot_path
     ]
@@ -95,6 +95,18 @@ def train_nerf_model(output_dir, task_id):
     output_queue.put({'task_id': task_id, 'line': "NeRF training started", 'progress': 0, 'status': 'training_started'})
 
     # Log the command for debugging
+    # print(f"[NeRF Training] Scene path: {output_dir}")
+    # transforms_json_path = os.path.join(output_dir, 'transforms.json')
+    # if os.path.exists(transforms_json_path):
+    #     print(f"[NeRF Training] transforms.json found at: {transforms_json_path}")
+    #     try:
+    #         with open(transforms_json_path, 'r') as f:
+    #             transforms_content = json.load(f)
+    #             print(f"[NeRF Training] transforms.json content (first 500 chars): {str(transforms_content)[:500]}...")
+    #     except Exception as e:
+    #         print(f"[NeRF Training] Error reading transforms.json: {e}")
+    # else:
+    #     print(f"[NeRF Training] WARNING: transforms.json NOT FOUND at: {transforms_json_path}")
     print(f"[NeRF Training] Executing command: {' '.join(train_command)}")
 
     # Prepare environment for subprocess, explicitly including CUDA bin to PATH
@@ -147,10 +159,12 @@ def generate_camera_path(output_dir, task_id, num_frames=60, radius=1.5):
         angle = 2 * math.pi * i / num_frames
         x = radius * math.sin(angle)
         y = radius * math.cos(angle)
-        z = 0.5 # Slightly above the origin
+        # Add vertical oscillation
+        z = 0.5 + 0.2 * math.sin(4 * math.pi * i / num_frames) # Oscillation in Z-axis
 
-        # Camera position
-        position = np.array([x, y, z])
+        # Camera position (add slight radius variation)
+        current_radius = radius + 0.1 * math.sin(2 * math.pi * i / num_frames)
+        position = np.array([current_radius * math.sin(angle), current_radius * math.cos(angle), z])
 
         # Look-at point (origin)
         look_at = np.array([0.0, 0.0, 0.0])
@@ -204,6 +218,7 @@ def render_nerf_video(snapshot_path, camera_path_file, output_dir, task_id):
     render_command = [
         VENV_PYTHON_PATH, run_script_path,
         snapshot_path,
+        '--n_steps', '0', # Explicitly set n_steps to 0 to prevent training during rendering
         '--video_camera_path', camera_path_file,
         '--video_n_seconds', '5', # Render a 5-second video
         '--video_fps', str(video_fps),
